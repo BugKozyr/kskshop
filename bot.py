@@ -4,7 +4,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import logging
 import time
 
-TOKEN = 'vk1.a.bVuQQz3wGe8ySz5valy6jPsDwMvduJML1xwZVFzHpmkKnAZWQzPEwgFZ8bjKUtnsAPygdwuLrSemo1Wra5kZXQe9lFfcdaQRv6N6oEua0bYeYwa_GMJeEzYExIzkdC46GMzytfyZCPI-VWhP8jIvcXRS_kQcHY18jo3j_Y_j9qkmZ1arzkuA87YCSv_QUKdi_4clA1PNPc3K__sdnPqN2A'
+TOKEN = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
 
 
 # Настройка логирования
@@ -37,6 +37,7 @@ def create_main_keyboard():
 def create_help_keyboard():
     keyboard = VkKeyboard(one_time=False)
     keyboard.add_button('Просит сменить пароль', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Компьютер не включается', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
@@ -72,7 +73,7 @@ def main():
 
                     if message_text == 'начать':
                         user_name = get_user_name(user_id)
-                        send_message(user_id, f'Привет, {user_name}! Чем я могу тебе помочь?', main_keyboard)
+                        send_message(user_id, f'Привет, {user_name}! Чем мы можем вам помочь?', main_keyboard)
                     elif message_text == 'узнать о рассрочке':
                         long_text = (
                             "Онлайн Рассрочка Интернет-Магазин KSKSHOP.RU\n\n"
@@ -116,7 +117,7 @@ def main():
                         )
                         send_message(user_id, password_text)
                     elif message_text == 'компьютер не включается':
-                        send_message(user_id, 'ТЕСТ')
+                        send_message(user_id, 'Информация скоро будет добавлена. Дождитесь ответа менеджера')
                     elif message_text == 'назад':
                         send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
