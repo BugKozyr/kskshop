@@ -6,6 +6,7 @@ import time
 
 TOKEN = 'vk1.a.bVuQQz3wGe8ySz5valy6jPsDwMvduJML1xwZVFzHpmkKnAZWQzPEwgFZ8bjKUtnsAPygdwuLrSemo1Wra5kZXQe9lFfcdaQRv6N6oEua0bYeYwa_GMJeEzYExIzkdC46GMzytfyZCPI-VWhP8jIvcXRS_kQcHY18jo3j_Y_j9qkmZ1arzkuA87YCSv_QUKdi_4clA1PNPc3K__sdnPqN2A'
 
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
@@ -23,13 +24,22 @@ def send_message(user_id, message, keyboard=None):
         keyboard=keyboard.get_keyboard() if keyboard else None
     )
 
-# Создание клавиатуры
-def create_keyboard():
+# Создание основной клавиатуры
+def create_main_keyboard():
     keyboard = VkKeyboard(one_time=False)
-    keyboard.add_button('Узнать о рассрочке', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Узнать о рассрочке', color=VkKeyboardColor.POSITIVE)
     keyboard.add_button('График работы', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
-    keyboard.add_button('Просит сменить пароль', color=VkKeyboardColor.SECONDARY)
+    keyboard.add_button('Помощь', color=VkKeyboardColor.SECONDARY)
+    return keyboard
+
+# Создание клавиатуры для подменю "Помощь"
+def create_help_keyboard():
+    keyboard = VkKeyboard(one_time=False)
+    keyboard.add_button('Просит сменить пароль', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Компьютер не включается', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_line()  # Переход на новую строку
+    keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
 
 # Получение имени пользователя
@@ -42,8 +52,10 @@ def get_user_name(user_id):
 
 # Основная функция обработки сообщений
 def main():
-    keyboard = create_keyboard()
-    known_commands = ['начать', 'узнать о рассрочке', 'график работы', 'просит сменить пароль']
+    main_keyboard = create_main_keyboard()
+    help_keyboard = create_help_keyboard()
+    known_commands = ['начать', 'узнать о рассрочке', 'график работы', 'помощь', 'просит сменить пароль', 'компьютер не включается', 'назад']
+
     while True:
         try:
             for event in longpoll.listen():
@@ -60,7 +72,7 @@ def main():
 
                     if message_text == 'начать':
                         user_name = get_user_name(user_id)
-                        send_message(user_id, f'Привет, {user_name}! Чем я могу тебе помочь?', keyboard)
+                        send_message(user_id, f'Привет, {user_name}! Чем я могу тебе помочь?', main_keyboard)
                     elif message_text == 'узнать о рассрочке':
                         long_text = (
                             "Онлайн Рассрочка Интернет-Магазин KSKSHOP.RU\n\n"
@@ -95,12 +107,18 @@ def main():
                             "- Почта: crimeastokcomputer@inbox.ru"
                         )
                         send_message(user_id, schedule_text)
+                    elif message_text == 'помощь':
+                        send_message(user_id, 'Какую помощь вам нужно?', help_keyboard)
                     elif message_text == 'просит сменить пароль':
                         password_text = (
                             "При просьбе ввести новый пароль, оставьте поля пустыми и нажмите МЫШКОЙ стрелочку 'Далее'.\n\n"
                             "Это требование операционной системы Windows, наш магазин к этому отношения не имеет."
                         )
                         send_message(user_id, password_text)
+                    elif message_text == 'компьютер не включается':
+                        send_message(user_id, 'ТЕСТ')
+                    elif message_text == 'назад':
+                        send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
             logging.error('ConnectionError occurred. Reconnecting...')
             time.sleep(5)  # Подождите 5 секунд перед повторным подключением
