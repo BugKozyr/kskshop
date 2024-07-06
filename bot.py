@@ -42,6 +42,16 @@ def send_photo_message(user_id, message, photo_path, keyboard=None):
         keyboard=keyboard.get_keyboard() if keyboard else None
     )
 
+# Функция для отправки пустой клавиатуры (удаление клавиатуры)
+def send_empty_keyboard(user_id):
+    empty_keyboard = VkKeyboard.get_empty_keyboard()
+    vk.messages.send(
+        user_id=user_id,
+        message="Обновление клавиатуры...",
+        random_id=0,
+        keyboard=empty_keyboard
+    )
+
 # Создание основной клавиатуры
 def create_main_keyboard():
     keyboard = VkKeyboard(one_time=False)
