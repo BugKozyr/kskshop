@@ -4,6 +4,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import logging
 import time
 import requests
+from datetime import datetime, timedelta
 
 TOKEN = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
 PHOTO_PATH = 'cable.jpg'
@@ -12,6 +13,9 @@ WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
 RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
 ADMIN_IDS = [146880457, 25510716]  # Список ID администраторов группы
+GROUP_ID = '35493903'
+POST_ID = '3078'
+END_DATE = datetime(2024, 8, 21, 20, 0, 0)  # Установите дату и время окончания розыгрыша
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -54,6 +58,45 @@ def send_empty_keyboard(user_id):
         random_id=0,
         keyboard=empty_keyboard
     )
+
+# Функция для получения статистики группы
+def get_group_stats():
+    try:
+        now = datetime.now()
+        remaining_time = END_DATE - now
+        if remaining_time.total_seconds() > 0:
+            days, seconds = remaining_time.days, remaining_time.seconds
+            hours = seconds // 3600
+            minutes = (seconds % 3600) // 60
+            seconds = seconds % 60
+        else:
+            days, hours, minutes, seconds = 0, 0, 0, 0
+
+        # Получаем общую информацию о группе
+        group_info = vk.groups.getById(group_id=GROUP_ID, fields='members_count')[0]
+        members_count = group_info['members_count']
+
+        # Получаем статистику для определенной записи
+        post_stats = vk.wall.getById(posts=f'-{GROUP_ID}_{POST_ID}')[0]
+        post_views = post_stats['views']['count']
+        post_likes = post_stats['likes']['count']
+        post_reposts = post_stats['reposts']['count']
+
+        # Формируем сообщение со статистикой
+        message = (
+            f"Количество участников: {members_count}\n"
+            "-------------------\n"
+            f"Розыгрыш: {post_views} просмотров | {post_likes} лайков | {post_reposts} репостов\n"
+            f"До конца розыгрыша осталось: {days} дней, {hours} часов, {minutes} минут, {seconds} секунд"
+        )
+
+        logging.info(message)
+        return message
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Произошла ошибка при соединении: {e}")
+    except vk_api.exceptions.VkApiError as e:
+        logging.error(f"Произошла ошибка VK API: {e}")
 
 # Создание основной клавиатуры
 def create_main_keyboard():
@@ -160,7 +203,7 @@ def main():
     inline_buy_key_keyboard = create_inline_buy_key_keyboard()
     known_commands = [
         'начать', 'узнать о рассрочке', 'график работы', 'часто задаваемые вопросы', 
-        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ', 'монитор за репост'
+        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ', 'монитор за репост', 'статистика'
     ]
 
     while True:
@@ -254,6 +297,12 @@ def main():
                             "Итоги будут подведены 21.08.2024 в 20:00."
                         )
                         send_photo_message(user_id, raffle_text, RAFFLE_PHOTO_PATH, inline_raffle_keyboard)
+                    elif message_text == 'статистика':
+                        if user_id in ADMIN_IDS:
+                            stats_message = get_group_stats()
+                            send_message(user_id, stats_message)
+                        else:
+                            send_message(user_id, "Извините, эта команда доступна только администраторам.")
                     elif message_text == 'назад':
                         send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
