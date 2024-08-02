@@ -11,7 +11,7 @@ RAFFLE_PHOTO_PATH = 'mon.jpg'  # Убедитесь, что указанный �
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
 RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
-ADMIN_IDS = [146880457, 25510716]  # Список ID администраторов группы
+ADMIN_IDS = [146880457, 242434059]  # Список ID администраторов группы
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
