@@ -6,9 +6,11 @@ import time
 import requests
 
 TOKEN = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
-PHOTO_PATH = 'cable.jpg'  # Убедитесь, что указанный путь правильный и файл существует
+PHOTO_PATH = 'cable.jpg'
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
+RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
+ADMIN_ID = 146880457  # ID администратора группы
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +57,8 @@ def send_empty_keyboard(user_id):
 # Создание основной клавиатуры
 def create_main_keyboard():
     keyboard = VkKeyboard(one_time=False)
+    keyboard.add_openlink_button('РОЗЫГРЫШ МОНИТОРА', link=RAFFLE_URL, color=VkKeyboardColor.POSITIVE)
+    keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Каталог', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Узнать о рассрочке', color=VkKeyboardColor.POSITIVE)
@@ -95,6 +99,7 @@ def create_components_keyboard():
     keyboard.add_openlink_button('SSD накопители', link='https://vk.com/market-35493903?section=album_34')
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_openlink_button('Корпуса', link='https://vk.com/market-35493903?section=album_19')
+    keyboard.add_openlink_button('Охлаждение', link='https://vk.com/market-35493903?section=album_23')
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
@@ -111,6 +116,12 @@ def create_help_keyboard():
     keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
 
+# Создание клавиатуры для покупки ключа
+def create_buy_key_keyboard():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Купить ключ', color=VkKeyboardColor.POSITIVE)
+    return keyboard
+
 # Получение имени пользователя
 def get_user_name(user_id):
     user_info = vk.users.get(user_ids=user_id)
@@ -125,9 +136,10 @@ def main():
     catalog_keyboard = create_catalog_keyboard()
     components_keyboard = create_components_keyboard()
     help_keyboard = create_help_keyboard()
+    buy_key_keyboard = create_buy_key_keyboard()
     known_commands = [
         'начать', 'узнать о рассрочке', 'график работы', 'часто задаваемые вопросы', 
-        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие'
+        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ'
     ]
 
     while True:
@@ -200,11 +212,17 @@ def main():
                         send_photo_message(user_id, help_text, PHOTO_PATH, help_keyboard)
                     elif message_text == 'как активировать windows':
                         activation_text = (
-                            "В нашем магазине можно приобрести лицензионный ключ для Windows 10 и Windows 11. Стоимость данного ключа - 1.000 рублей.\n"
-                             "__________________________\n"
-                            "Бесплатно можно активировать с помощью программы KMSAuto. Данная программа нелегальна, а также не долговечна и периодически нужно повторять процедуру активации."
+                            "Мы устанавливаем официальный, но не активированный образ Windows.\n"
+                            "В нашем магазине есть возможность приобрести лицензионный ключ для Windows 10 и Windows 11, а также ключ активации для Microsoft Office 2016.\n"
+                            "-----------------------\n"
+                            "Ключ активации Windows - 1.000 рублей\n"
+                            "Ключ активации Microsoft Office 2016 - 2.000 рублей"
                         )
-                        send_message(user_id, activation_text)
+                        send_message(user_id, activation_text, buy_key_keyboard)
+                    elif message_text == 'купить ключ':
+                        user_name = get_user_name(user_id)
+                        send_message(ADMIN_ID, f"{user_name} хочет купить ключ")
+                        send_message(user_id, "Ваш запрос отправлен администратору.")
                     elif message_text == 'каталог':
                         send_message(user_id, 'Выберите категорию:', catalog_keyboard)
                     elif message_text == 'комплектующие':
