@@ -11,7 +11,7 @@ RAFFLE_PHOTO_PATH = 'mon.jpg'  # Убедитесь, что указанный �
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
 RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
-ADMIN_IDS = [146880457, 242434059]  # Список ID администраторов группы
+ADMIN_IDS = [146880457, 25510716]  # Список ID администраторов группы
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -129,6 +129,12 @@ def create_inline_buy_key_keyboard():
     keyboard.add_button('Купить ключ', color=VkKeyboardColor.POSITIVE)
     return keyboard
 
+# Создание inline клавиатуры для перехода в диалог
+def create_inline_dialog_keyboard(user_id):
+    keyboard = VkKeyboard(inline=True)
+    keyboard.add_openlink_button('Перейти в диалог', link=f'https://vk.com/gim12345678?sel={user_id}')
+    return keyboard
+
 # Получение имени пользователя
 def get_user_name(user_id):
     user_info = vk.users.get(user_ids=user_id)
@@ -138,9 +144,11 @@ def get_user_name(user_id):
     return 'друг'
 
 # Функция для отправки уведомления администраторам
-def notify_admins(message):
+def notify_admins(user_id, user_name):
     for admin_id in ADMIN_IDS:
-        send_message(admin_id, message)
+        admin_message = f"{user_name} хочет купить ключ"
+        keyboard = create_inline_dialog_keyboard(user_id)
+        send_message(admin_id, admin_message, keyboard)
 
 # Основная функция обработки сообщений
 def main():
@@ -234,7 +242,7 @@ def main():
                         send_message(user_id, activation_text, inline_buy_key_keyboard)
                     elif message_text == 'купить ключ':
                         user_name = get_user_name(user_id)
-                        notify_admins(f"{user_name} хочет купить ключ")
+                        notify_admins(user_id, user_name)
                         send_message(user_id, "Ваш запрос отправлен администратору.")
                     elif message_text == 'каталог':
                         send_message(user_id, 'Выберите категорию:', catalog_keyboard)
