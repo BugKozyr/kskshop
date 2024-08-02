@@ -7,10 +7,11 @@ import requests
 
 TOKEN = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
 PHOTO_PATH = 'cable.jpg'
+RAFFLE_PHOTO_PATH = 'mon.jpg'  # Убедитесь, что указанный путь правильный и файл существует
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
 RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
-ADMIN_IDS = [146880457, 242434059]  # Список ID администраторов группы
+ADMIN_IDS = [146880457, 25510716]  # Список ID администраторов группы
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -57,7 +58,7 @@ def send_empty_keyboard(user_id):
 # Создание основной клавиатуры
 def create_main_keyboard():
     keyboard = VkKeyboard(one_time=False)
-    keyboard.add_openlink_button('РОЗЫГРЫШ МОНИТОРА', link=RAFFLE_URL)
+    keyboard.add_button('МОНИТОР ЗА РЕПОСТ', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Каталог', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
@@ -116,6 +117,12 @@ def create_help_keyboard():
     keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
 
+# Создание inline клавиатуры для участия в розыгрыше
+def create_inline_raffle_keyboard():
+    keyboard = VkKeyboard(inline=True)
+    keyboard.add_openlink_button('Принять участие', link=RAFFLE_URL)
+    return keyboard
+
 # Создание inline клавиатуры для покупки ключа
 def create_inline_buy_key_keyboard():
     keyboard = VkKeyboard(inline=True)
@@ -141,10 +148,11 @@ def main():
     catalog_keyboard = create_catalog_keyboard()
     components_keyboard = create_components_keyboard()
     help_keyboard = create_help_keyboard()
+    inline_raffle_keyboard = create_inline_raffle_keyboard()
     inline_buy_key_keyboard = create_inline_buy_key_keyboard()
     known_commands = [
         'начать', 'узнать о рассрочке', 'график работы', 'часто задаваемые вопросы', 
-        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ'
+        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ', 'монитор за репост'
     ]
 
     while True:
@@ -232,6 +240,12 @@ def main():
                         send_message(user_id, 'Выберите категорию:', catalog_keyboard)
                     elif message_text == 'комплектующие':
                         send_message(user_id, 'Выберите категорию комплектующих:', components_keyboard)
+                    elif message_text == 'монитор за репост':
+                        raffle_text = (
+                            "Разыгрываем игровой монитор Xiaomi G24 165Hz за репост!\n"
+                            "Итоги будут подведены 21.08.2024 в 20:00."
+                        )
+                        send_photo_message(user_id, raffle_text, RAFFLE_PHOTO_PATH, inline_raffle_keyboard)
                     elif message_text == 'назад':
                         send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
