@@ -132,7 +132,7 @@ def create_inline_buy_key_keyboard():
 # Создание inline клавиатуры для перехода в диалог
 def create_inline_dialog_keyboard(user_id):
     keyboard = VkKeyboard(inline=True)
-    keyboard.add_openlink_button('Перейти в диалог', link=f'https://vk.com/gim12345678?sel={user_id}')
+    keyboard.add_openlink_button('Перейти в диалог', link=f'https://vk.com/gim35493903?sel={user_id}')
     return keyboard
 
 # Получение имени пользователя
