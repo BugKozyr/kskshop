@@ -10,7 +10,7 @@ PHOTO_PATH = 'cable.jpg'
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
 WILDBERRIES_URL = 'https://www.wildberries.ru/brands/kskshop'
 RAFFLE_URL = 'https://vk.com/wall-35493903_3078'
-ADMIN_ID = 146880457  # ID администратора группы
+ADMIN_IDS = [146880457, 242434059]  # Список ID администраторов группы
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -57,7 +57,7 @@ def send_empty_keyboard(user_id):
 # Создание основной клавиатуры
 def create_main_keyboard():
     keyboard = VkKeyboard(one_time=False)
-    keyboard.add_openlink_button('РОЗЫГРЫШ МОНИТОРА', link=RAFFLE_URL, color=VkKeyboardColor.POSITIVE)
+    keyboard.add_openlink_button('РОЗЫГРЫШ МОНИТОРА', link=RAFFLE_URL)
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Каталог', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
@@ -116,9 +116,9 @@ def create_help_keyboard():
     keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
 
-# Создание клавиатуры для покупки ключа
-def create_buy_key_keyboard():
-    keyboard = VkKeyboard(one_time=True)
+# Создание inline клавиатуры для покупки ключа
+def create_inline_buy_key_keyboard():
+    keyboard = VkKeyboard(inline=True)
     keyboard.add_button('Купить ключ', color=VkKeyboardColor.POSITIVE)
     return keyboard
 
@@ -130,13 +130,18 @@ def get_user_name(user_id):
         return first_name
     return 'друг'
 
+# Функция для отправки уведомления администраторам
+def notify_admins(message):
+    for admin_id in ADMIN_IDS:
+        send_message(admin_id, message)
+
 # Основная функция обработки сообщений
 def main():
     main_keyboard = create_main_keyboard()
     catalog_keyboard = create_catalog_keyboard()
     components_keyboard = create_components_keyboard()
     help_keyboard = create_help_keyboard()
-    buy_key_keyboard = create_buy_key_keyboard()
+    inline_buy_key_keyboard = create_inline_buy_key_keyboard()
     known_commands = [
         'начать', 'узнать о рассрочке', 'график работы', 'часто задаваемые вопросы', 
         'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ'
@@ -218,10 +223,10 @@ def main():
                             "Ключ активации Windows - 1.000 рублей\n"
                             "Ключ активации Microsoft Office 2016 - 2.000 рублей"
                         )
-                        send_message(user_id, activation_text, buy_key_keyboard)
+                        send_message(user_id, activation_text, inline_buy_key_keyboard)
                     elif message_text == 'купить ключ':
                         user_name = get_user_name(user_id)
-                        send_message(ADMIN_ID, f"{user_name} хочет купить ключ")
+                        notify_admins(f"{user_name} хочет купить ключ")
                         send_message(user_id, "Ваш запрос отправлен администратору.")
                     elif message_text == 'каталог':
                         send_message(user_id, 'Выберите категорию:', catalog_keyboard)
