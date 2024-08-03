@@ -6,7 +6,8 @@ import time
 import requests
 from datetime import datetime, timedelta
 
-TOKEN = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
+TOKEN_GROUP = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
+TOKEN_USER = 'vk1.a.s3jQhza_ZB_PVmxEgk4Jp6jkPaNWmNVBah_d-jf-mQmMmA53fwArMWlNd6OWIKekRP0HBmqnsMvBmsGDVFFfsZshv273AlTIRdnR20GizSMsrU0tBE0AjQSYwq0CMz3A6iiGPtBoL5SeuedApw7OkcuSHvblGPTXTXu1-shk4c_ybRQ7_JS3EOHqBFB5C8znsvH8NLu49vQHiGZ5vdxpLg'  # Токен пользователя с правами администратора
 PHOTO_PATH = 'cable.jpg'
 RAFFLE_PHOTO_PATH = 'mon.jpg'  # Убедитесь, что указанный путь правильный и файл существует
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
@@ -20,14 +21,18 @@ END_DATE = datetime(2024, 8, 21, 20, 0, 0)  # Установите дату и �
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Авторизация в ВКонтакте
-vk_session = vk_api.VkApi(token=TOKEN)
-vk = vk_session.get_api()
-longpoll = VkLongPoll(vk_session)
+# Авторизация в API ВКонтакте для группы
+vk_session_group = vk_api.VkApi(token=TOKEN_GROUP)
+vk_group = vk_session_group.get_api()
+longpoll = VkLongPoll(vk_session_group)
+
+# Авторизация в API ВКонтакте для пользователя
+vk_session_user = vk_api.VkApi(token=TOKEN_USER)
+vk_user = vk_session_user.get_api()
 
 # Функция для отправки сообщения с клавиатурой
 def send_message(user_id, message, keyboard=None):
-    vk.messages.send(
+    vk_group.messages.send(
         user_id=user_id,
         message=message,
         random_id=0,
@@ -36,12 +41,12 @@ def send_message(user_id, message, keyboard=None):
 
 # Функция для отправки сообщения с фотографией
 def send_photo_message(user_id, message, photo_path, keyboard=None):
-    upload = vk_api.VkUpload(vk_session)
+    upload = vk_api.VkUpload(vk_session_group)
     photo = upload.photo_messages(photo_path)
     owner_id = photo[0]['owner_id']
     photo_id = photo[0]['id']
     attachment = f'photo{owner_id}_{photo_id}'
-    vk.messages.send(
+    vk_group.messages.send(
         user_id=user_id,
         message=message,
         random_id=0,
@@ -52,7 +57,7 @@ def send_photo_message(user_id, message, photo_path, keyboard=None):
 # Функция для отправки пустой клавиатуры (удаление клавиатуры)
 def send_empty_keyboard(user_id):
     empty_keyboard = VkKeyboard.get_empty_keyboard()
-    vk.messages.send(
+    vk_group.messages.send(
         user_id=user_id,
         message="Обновление клавиатуры...",
         random_id=0,
@@ -73,11 +78,11 @@ def get_group_stats():
             days, hours, minutes, seconds = 0, 0, 0, 0
 
         # Получаем общую информацию о группе
-        group_info = vk.groups.getById(group_id=GROUP_ID, fields='members_count')[0]
+        group_info = vk_user.groups.getById(group_id=GROUP_ID, fields='members_count')[0]
         members_count = group_info['members_count']
 
         # Получаем статистику для определенной записи
-        post_stats = vk.wall.getById(posts=f'-{GROUP_ID}_{POST_ID}')[0]
+        post_stats = vk_user.wall.getById(posts=f'-{GROUP_ID}_{POST_ID}')[0]
         post_views = post_stats['views']['count']
         post_likes = post_stats['likes']['count']
         post_reposts = post_stats['reposts']['count']
@@ -95,8 +100,10 @@ def get_group_stats():
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Произошла ошибка при соединении: {e}")
+        return "Произошла ошибка при соединении."
     except vk_api.exceptions.VkApiError as e:
         logging.error(f"Произошла ошибка VK API: {e}")
+        return "Произошла ошибка VK API."
 
 # Создание основной клавиатуры
 def create_main_keyboard(user_id):
@@ -109,10 +116,12 @@ def create_main_keyboard(user_id):
     keyboard.add_button('График работы', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_button('Часто задаваемые вопросы', color=VkKeyboardColor.SECONDARY)
-    keyboard.add_line()  # Переход на новую строку
-    keyboard.add_openlink_button('Конфигуратор ПК', link=WEBSITE_URL)  # Кнопка для перехода на сайт
-    keyboard.add_openlink_button('Мы на Wildberries', link=WILDBERRIES_URL)  # Кнопка для перехода на Wildberries
-    
+
+    if user_id not in ADMIN_IDS:
+        keyboard.add_line()  # Кнопки не отображаются для администраторов
+        keyboard.add_openlink_button('Конфигуратор ПК', link=WEBSITE_URL)  # Кнопка для перехода на сайт
+        keyboard.add_openlink_button('Мы на Wildberries', link=WILDBERRIES_URL)  # Кнопка для перехода на Wildberries
+
     if user_id in ADMIN_IDS:
         keyboard.add_line()
         keyboard.add_button('Статистика', color=VkKeyboardColor.PRIMARY)
@@ -174,7 +183,7 @@ def create_inline_raffle_keyboard():
 # Создание inline клавиатуры для покупки ключа
 def create_inline_buy_key_keyboard():
     keyboard = VkKeyboard(inline=True)
-    keyboard.add_button('Купить ключ', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_button('Купить ключ', color=VkKeyboardColor.POSITIVE, payload={"command": "buy_key"})
     return keyboard
 
 # Создание inline клавиатуры для перехода в диалог
@@ -185,7 +194,7 @@ def create_inline_dialog_keyboard(user_id):
 
 # Получение имени пользователя
 def get_user_name(user_id):
-    user_info = vk.users.get(user_ids=user_id)
+    user_info = vk_user.users.get(user_ids=user_id)
     if user_info:
         first_name = user_info[0]['first_name']
         return first_name
@@ -220,8 +229,8 @@ def main():
                     # Логирование полученного сообщения
                     logging.info(f'Получено сообщение от {user_id}: {message_text}')
 
-                    if message_text not in known_commands:
-                        # Если команда неизвестна, ничего не делаем
+                    if message_text not in known_commands and user_id not in ADMIN_IDS:
+                        # Если команда неизвестна и пользователь не администратор, ничего не делаем
                         continue
 
                     main_keyboard = create_main_keyboard(user_id)
@@ -303,12 +312,9 @@ def main():
                             "Итоги будут подведены 21.08.2024 в 20:00."
                         )
                         send_photo_message(user_id, raffle_text, RAFFLE_PHOTO_PATH, inline_raffle_keyboard)
-                    elif message_text == 'статистика':
-                        if user_id in ADMIN_IDS:
-                            stats_message = get_group_stats()
-                            send_message(user_id, stats_message)
-                        else:
-                            send_message(user_id, "Извините, эта команда доступна только администраторам.")
+                    elif message_text == 'статистика' and user_id in ADMIN_IDS:
+                        stats_message = get_group_stats()
+                        send_message(user_id, stats_message)
                     elif message_text == 'назад':
                         send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
