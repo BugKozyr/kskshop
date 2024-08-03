@@ -124,8 +124,16 @@ def create_main_keyboard(user_id):
 
     if user_id in ADMIN_IDS:
         keyboard.add_line()
-        keyboard.add_button('Статистика', color=VkKeyboardColor.PRIMARY)
+        keyboard.add_button('Админ меню', color=VkKeyboardColor.NEGATIVE)
 
+    return keyboard
+
+# Создание клавиатуры админ-меню
+def create_admin_keyboard():
+    keyboard = VkKeyboard(one_time=False)
+    keyboard.add_button('Статистика', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_line()
+    keyboard.add_button('Назад', color=VkKeyboardColor.NEGATIVE)
     return keyboard
 
 # Создание клавиатуры для каталога
@@ -214,9 +222,10 @@ def main():
     help_keyboard = create_help_keyboard()
     inline_raffle_keyboard = create_inline_raffle_keyboard()
     inline_buy_key_keyboard = create_inline_buy_key_keyboard()
+    admin_keyboard = create_admin_keyboard()
     known_commands = [
         'начать', 'узнать о рассрочке', 'график работы', 'часто задаваемые вопросы', 
-        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ', 'монитор за репост', 'статистика'
+        'windows требует сменить пароль', 'компьютер не включается', 'как активировать windows', 'назад', 'каталог', 'комплектующие', 'купить ключ', 'монитор за репост', 'статистика', 'админ меню'
     ]
 
     while True:
@@ -315,6 +324,8 @@ def main():
                     elif message_text == 'статистика' and user_id in ADMIN_IDS:
                         stats_message = get_group_stats()
                         send_message(user_id, stats_message)
+                    elif message_text == 'админ меню' and user_id in ADMIN_IDS:
+                        send_message(user_id, 'Админ меню:', admin_keyboard)
                     elif message_text == 'назад':
                         send_message(user_id, 'Вы вернулись в главное меню.', main_keyboard)
         except requests.exceptions.ConnectionError:
