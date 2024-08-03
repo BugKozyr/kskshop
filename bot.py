@@ -99,7 +99,7 @@ def get_group_stats():
         logging.error(f"Произошла ошибка VK API: {e}")
 
 # Создание основной клавиатуры
-def create_main_keyboard():
+def create_main_keyboard(user_id):
     keyboard = VkKeyboard(one_time=False)
     keyboard.add_button('МОНИТОР ЗА РЕПОСТ', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()  # Переход на новую строку
@@ -112,6 +112,11 @@ def create_main_keyboard():
     keyboard.add_line()  # Переход на новую строку
     keyboard.add_openlink_button('Конфигуратор ПК', link=WEBSITE_URL)  # Кнопка для перехода на сайт
     keyboard.add_openlink_button('Мы на Wildberries', link=WILDBERRIES_URL)  # Кнопка для перехода на Wildberries
+    
+    if user_id in ADMIN_IDS:
+        keyboard.add_line()
+        keyboard.add_button('Статистика', color=VkKeyboardColor.PRIMARY)
+
     return keyboard
 
 # Создание клавиатуры для каталога
@@ -195,7 +200,6 @@ def notify_admins(user_id, user_name):
 
 # Основная функция обработки сообщений
 def main():
-    main_keyboard = create_main_keyboard()
     catalog_keyboard = create_catalog_keyboard()
     components_keyboard = create_components_keyboard()
     help_keyboard = create_help_keyboard()
@@ -219,6 +223,8 @@ def main():
                     if message_text not in known_commands:
                         # Если команда неизвестна, ничего не делаем
                         continue
+
+                    main_keyboard = create_main_keyboard(user_id)
 
                     if message_text == 'начать':
                         user_name = get_user_name(user_id)
