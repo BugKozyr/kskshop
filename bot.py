@@ -7,7 +7,7 @@ import requests
 from datetime import datetime, timedelta
 
 TOKEN_GROUP = 'vk1.a.bIduXhrbRQiKbqusyNrJ-Yem2NNRLaUNB_UViX6Noh91QLsU3etlAaFjzEFpBVlo4HREnNbAtloWLjSwVSMxEsXkjnOA-h6R5GWmmq_k3yO_SNEj6ztFBNqk9OwHIip3L66hH2VKyc2vjMHZtkLeSCHO6IhQuoX_lo01Ab_VteU0dWjZmPE7sZnIX7pBxusE5O4Y5DEIgHuAVnTGPcRWzQ'
-TOKEN_USER = 'vk1.a.s3jQhza_ZB_PVmxEgk4Jp6jkPaNWmNVBah_d-jf-mQmMmA53fwArMWlNd6OWIKekRP0HBmqnsMvBmsGDVFFfsZshv273AlTIRdnR20GizSMsrU0tBE0AjQSYwq0CMz3A6iiGPtBoL5SeuedApw7OkcuSHvblGPTXTXu1-shk4c_ybRQ7_JS3EOHqBFB5C8znsvH8NLu49vQHiGZ5vdxpLg'  # Токен пользователя с правами администратора
+TOKEN_USER = 'vk1.a.y-HDluJCmMJqN3RDG1ShQpB1PmH2JqT9-D5wbiFTXRbb7R5_5upOJFKtzRROK57r0NFVHUFgY4Ped3XAeWRi2NljMmXBwVwaDMCuYl7mACbQAS97yCBISQnzzMwAfils3TmZr1tggPFNAMi0qc03jG6d_zZUCeY-dQUqAa_zINXxum59tuuLwmV6tPiq1CSd3W4_jKnsEsveTfjNk3V5ng'  # Токен пользователя с правами администратора
 PHOTO_PATH = 'cable.jpg'
 RAFFLE_PHOTO_PATH = 'mon.jpg'  # Убедитесь, что указанный путь правильный и файл существует
 WEBSITE_URL = 'https://kskshop.ru/configuratorpc/'
